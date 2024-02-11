@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GET DRUNK!</title>
+    </head>
+    <style>
+        #theOne{
+            float: right;
+            text-align: center;
+        }
+        #content{
+            margin-top: 5%;
+            margin-left: 5%;
+            margin-right: 5%;
+        }
+        #currentPlayer{
+            font-size: 13vw;
+        }
+        
+        #addPlayer{
+            margin-bottom: 10px;
+        }
+        
+        #sendInfo{
+            margin-top:20px;
+        }
+        #player{
+            font-weight: bold;
+        }
+    </style>
+
+
+    <script>
+        var rule;
+        var player
+        var currentPlayer = 0;
+        var lastRandom = 1;
+        var lastRulesUsed = [];
+        var file_name = "rules.txt";
+        var file_text = [];
+        var num_of_rules = 0;
+        var found = 2;
+        var players = [];
+
+        function has(arraygive,item){
+            for(i = 0; i < arraygive.length; i++){
+                if(item == arraygive[i]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function readRulesFromFile(){
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("GET", file_name, false);
+            rawFile.onreadystatechange = function ()
+            {
+                if(rawFile.readyState === 4)
+                {
+                    if(rawFile.status === 200 || rawFile.status == 0)
+                    {
+                        var allText = rawFile.responseText;
+                        //console.log(allText.split("\n")[1]);
+                        var i = 0;
+                        while (allText.split("\n").length-1 >= i){
+                            file_text.push(allText.split("\n")[i]);
+                            i++;
+                        }
+                    }
+                }
+            }
+            rawFile.send(null);
+            //console.log(file_text);
+            putNumbOfRules();
+        }
+        
+        function putNumbOfRules(){
+            num_of_rules = file_text.length;
+            document.getElementById("insertNumbRule").innerHTML = num_of_rules;
+            
+        }
+
+        function funcRandomRule() {
+
+            //Try to make into a function and separate
+            document.getElementById("randomRule").disabled = true;
+            setTimeout(function() { document.getElementById("randomRule").disabled = false; }, 2000);
+
+
+            if (lastRulesUsed.length == rule-1){
+                document.getElementById("theOne").innerHTML = "YOU GUYS DRUNK AF LOL!";
+                document.getElementById("randomRule").style.visibility = "hidden";
+
+            }
+
+            var chosenRule = Math.floor(Math.random() * rule+1);
+
+
+            while(has(lastRulesUsed,chosenRule) == true && lastRulesUsed.length < rule){
+                chosenRule = Math.floor(Math.random() * rule+1);
+            }
+            //console.log(lastRulesUsed);
+            lastRulesUsed.push(chosenRule);
+
+
+
+
+            document.getElementById("rule").innerHTML = chosenRule;
+            document.getElementById("rule_choose").innerHTML = file_text[chosenRule-1];
+            //console.log(chosenRule);
+            //console.log(file_text[chosenRule-1]);
+
+
+
+            currentPlayer++;
+            if (currentPlayer > player){
+                currentPlayer = 1;
+            }
+            document.getElementById("currentPlayer").innerHTML = players[currentPlayer-1];
+            
+            document.getElementById("player").innerHTML = "X";
+        }
+
+        function funcRandomPlayer() {
+
+            //Try to make into a function and separate
+            document.getElementById("randomPlayer").disabled = true;
+            setTimeout(function() { document.getElementById("randomPlayer").disabled = false; }, 2000);
+
+            var chosenPlayer = Math.floor(Math.random() * player+1);
+            //console.log("lastRandom"+lastRandom);
+            while(chosenPlayer == currentPlayer || chosenPlayer == lastRandom){
+                chosenPlayer = Math.floor(Math.random() * player+1);
+                //console.log(chosenPlayer);
+            }
+            lastRandom = chosenPlayer;
+            document.getElementById("player").innerHTML = players[chosenPlayer-1];
+        }
+
+        function SendInfo() {
+            //rule = document.getElementById("insertNumbRule").value;
+            //<textarea rows="1" cols="21" id="insertNumbRule">Total Rules</textarea>
+            rule = num_of_rules;
+            player = players.length;
+            document.getElementById("sendInfoDiv").style.visibility = "hidden";
+            document.getElementById("gameDiv").style.visibility = "visible";
+
+        }
+
+        function play(){
+            funcRandomRule();
+            document.getElementById("play").style.visibility = "hidden";
+            document.getElementById("randomRule").style.visibility = "visible";
+            document.getElementById("randomPlayer").style.visibility = "visible";
+        }
+        
+        function AddPlayer(){
+            var player_numb = players.length;
+            
+            player = document.getElementById("playerName").value;
+            players.push(player);
+            var DIV_Player = document.createElement("div");
+            DIV_Player.setAttribute("id", "DIV_player_"+player_numb);
+            document.getElementById("addingPlayers").appendChild(DIV_Player);
+            
+            //create p
+            var input = document.createElement("p");
+            input.innerHTML = player;
+            input.setAttribute("id", "player_"+player_numb);
+            document.getElementById("DIV_player_"+player_numb).appendChild(input); // put it into the DOM
+            document.getElementById("playerName").value = "";
+            document.getElementById("playerName").focus();
+            
+            //Add button to p
+            var bttt = document.createElement("BUTTON");
+            bttt.setAttribute("id", "delete_"+player_numb);
+            bttt.onclick = function () {
+                players.splice(player_numb,1);
+                document.getElementById("DIV_player_"+player_numb).remove();
+            };
+            
+            var bttnode = document.createTextNode("X");
+            
+            bttt.appendChild(bttnode);
+            document.getElementById("player_"+player_numb).appendChild(bttt);
+            
+        }
+    </script>
+    <body onload="readRulesFromFile()">
+        <div id="content">
+            <div id="gameDiv" style="visibility: hidden">
+                <h1 id="theOne">Player playing: <br><a id="currentPlayer">0</a></h1>
+                <button id="randomRule" onclick="funcRandomRule()" style="visibility: hidden">Random Regra</button>
+                <p>Regra nº <a id = "rule">X</a></p>
+
+                <button id="randomPlayer" onclick="funcRandomPlayer()" style="visibility: hidden">Random Player</button>
+                <p>Jogador: <a id = "player">X</a></p>
+                <button id="play" onclick="play()">LETS GET DRUNK!</button>
+                <br>
+                
+                <a id="rule_choose"></a>
+            </div>
+
+            <div id ="sendInfoDiv">
+                
+                <div>Total number of rules: <a id="insertNumbRule" a>X</div>
+                <br>
+                <div id="addingPlayers">
+                    <button id="addPlayer" onclick="AddPlayer()">Add Player +</button>
+                    <br>
+                    <input id="playerName" placeholder="Player Name"></input>
+                    
+                    
+                </div>
+                
+                <button id="sendInfo" onclick="SendInfo()">Send Info</button>
+            </div>
+            
+        </div>
+    </body>
+    <script>
+    //Enter for names
+        document.getElementById("playerName").addEventListener("keyup", function(event) {
+            if (event.keyCode === 13) {
+            event.preventDefault();
+            document.getElementById("addPlayer").click();
+        }
+        });
+    //Side arrow for new rule/player
+        document.addEventListener("keyup", function(event) {
+            if (event.keyCode === 37 && document.getElementById("randomPlayer").style.visibility === "visible") {
+            event.preventDefault();
+            console.log("<-");
+        }
+        });
+        
+        document.addEventListener("keyup", function(event) {
+            if (event.keyCode === 39 && document.getElementById("randomRule").style.visibility === "visible") {
+            event.preventDefault();
+            console.log("->");
+            document.getElementById("randomRule").click();
+        }
+        });
+        
+        document.addEventListener("keyup", function(event) {
+            if (event.keyCode === 38 && document.getElementById("randomPlayer").style.visibility === "visible") {
+            event.preventDefault();
+            console.log("^");
+            document.getElementById("randomPlayer").click();
+        }
+        });
+        
+        document.addEventListener("keyup", function(event) {
+            if (event.keyCode === 40 && document.getElementById("randomRule").style.visibility === "visible") {
+            event.preventDefault();
+            console.log("v");
+        }
+        });
+    </script>
+</html>
